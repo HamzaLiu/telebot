@@ -222,10 +222,12 @@ func (b *Bot) ProcessUpdate(u Update) {
 			match := cbackRx.FindAllStringSubmatch(data, -1)
 			if match != nil {
 				unique, payload := match[0][1], match[0][3]
-				if handler, ok := b.handlers["\f"+unique]; ok {
+				if handlers := b.matchHandlers("\f" + unique); len(handlers) > 0 {
 					u.Callback.Unique = unique
 					u.Callback.Data = payload
-					b.runHandler(handler, c)
+					for _, handler := range handlers {
+						b.runHandler(handler, c)
+					}
 					return
 				}
 			}
@@ -282,8 +284,10 @@ func (b *Bot) ProcessUpdate(u Update) {
 }
 
 func (b *Bot) handle(end string, c Context) bool {
-	if handler, ok := b.handlers[end]; ok {
-		b.runHandler(handler, c)
+	if handlers := b.matchHandlers(end); len(handlers) > 0 {
+		for _, handler := range handlers {
+			b.runHandler(handler, c)
+		}
 		return true
 	}
 	return false

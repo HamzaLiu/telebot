@@ -42,7 +42,7 @@ func NewBot(pref Settings) (*Bot, error) {
 		onError: pref.OnError,
 
 		Updates:  make(chan Update, pref.Updates),
-		handlers: make(map[string]HandlerFunc),
+		handlers: make(map[int][]*Handler),
 		stop:     make(chan chan struct{}),
 
 		synchronous: pref.Synchronous,
@@ -75,7 +75,7 @@ type Bot struct {
 	onError func(error, Context)
 
 	group       *Group
-	handlers    map[string]HandlerFunc
+	handlers    map[int][]*Handler
 	synchronous bool
 	verbose     bool
 	parseMode   ParseMode
@@ -139,6 +139,19 @@ func (b *Bot) debug(err error) {
 	}
 }
 
+func (b *Bot) matchHandlers(endpoint string) []HandlerFunc {
+	fs := []HandlerFunc{}
+	for _, hs := range b.handlers {
+		for _, h := range hs {
+			if h.End == endpoint {
+				fs = append(fs, h.HandlerFunc)
+				break
+			}
+		}
+	}
+	return fs
+}
+
 // Group returns a new group.
 func (b *Bot) Group() *Group {
 	return &Group{b: b}
@@ -173,6 +186,10 @@ var (
 //		b.Handle("/ban", onBan, middleware.Whitelist(ids...))
 //
 func (b *Bot) Handle(endpoint interface{}, h HandlerFunc, m ...MiddlewareFunc) {
+	b.HandleWithGroupNum(endpoint, h, -1, m...)
+}
+
+func (b *Bot) HandleWithGroupNum(endpoint interface{}, h HandlerFunc, groupNum int, m ...MiddlewareFunc) {
 	if len(b.group.middleware) > 0 {
 		m = append(b.group.middleware, m...)
 	}
@@ -181,14 +198,20 @@ func (b *Bot) Handle(endpoint interface{}, h HandlerFunc, m ...MiddlewareFunc) {
 		return applyMiddleware(h, m...)(c)
 	}
 
+	var endStr string
 	switch end := endpoint.(type) {
 	case string:
-		b.handlers[end] = handler
+		endStr = end
 	case CallbackEndpoint:
-		b.handlers[end.CallbackUnique()] = handler
+		endStr = end.CallbackUnique()
 	default:
 		panic("telebot: unsupported endpoint")
 	}
+
+	b.handlers[groupNum] = append(b.handlers[groupNum], &Handler{
+		End:         endStr,
+		HandlerFunc: handler,
+	})
 }
 
 // Start brings bot into motion by consuming incoming

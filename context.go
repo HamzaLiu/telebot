@@ -11,6 +11,12 @@ import (
 // used to handle actual endpoints.
 type HandlerFunc func(Context) error
 
+// Handler contains a handler function and the endpoint of this function.
+type Handler struct {
+	End         string
+	HandlerFunc HandlerFunc
+}
+
 // Context wraps an update and represents the context of current event.
 type Context interface {
 	// Bot returns the bot instance.
