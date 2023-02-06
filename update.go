@@ -237,7 +237,7 @@ func (b *Bot) processUpdate(u Update, handlers []*Handler) {
 			if match != nil {
 				unique, payload := match[0][1], match[0][3]
 				for _, handler := range handlers {
-					if handler.End != "\f"+unique {
+					if !handler.End.Match([]byte(unique)) {
 						continue
 					}
 					u.Callback.Unique = unique
@@ -300,7 +300,7 @@ func (b *Bot) processUpdate(u Update, handlers []*Handler) {
 
 func (b *Bot) handle(end string, c Context, handlers []*Handler) bool {
 	for _, handler := range handlers {
-		if handler.End == end {
+		if handler.End.Match([]byte(end)) {
 			b.runHandler(handler.HandlerFunc, c)
 			return true
 		}

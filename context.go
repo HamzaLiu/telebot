@@ -2,6 +2,7 @@ package telebot
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -13,7 +14,7 @@ type HandlerFunc func(Context) error
 
 // Handler contains a handler function and the endpoint of this function.
 type Handler struct {
-	End         string
+	End         *regexp.Regexp
 	HandlerFunc HandlerFunc
 }
 

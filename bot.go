@@ -185,18 +185,20 @@ func (b *Bot) HandleWithGroupNum(endpoint interface{}, h HandlerFunc, groupNum i
 		return applyMiddleware(h, m...)(c)
 	}
 
-	var endStr string
+	var endReg *regexp.Regexp
 	switch end := endpoint.(type) {
 	case string:
-		endStr = end
+		endReg = regexp.MustCompile(fmt.Sprintf("^%s$", end))
 	case CallbackEndpoint:
-		endStr = end.CallbackUnique()
+		endReg = regexp.MustCompile(fmt.Sprintf("^%s$", end.CallbackUnique()))
+	case *regexp.Regexp:
+		endReg = end
 	default:
 		panic("telebot: unsupported endpoint")
 	}
 
 	b.handlers[groupNum] = append(b.handlers[groupNum], &Handler{
-		End:         endStr,
+		End:         endReg,
 		HandlerFunc: handler,
 	})
 }
