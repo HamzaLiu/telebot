@@ -42,7 +42,7 @@ func Recover(onError ...func(error)) tele.MiddlewareFunc {
 				f = onError[0]
 			} else {
 				f = func(err error) {
-					c.Bot().OnError(err, nil)
+					c.Bot().OnError(err, c)
 				}
 			}
 
