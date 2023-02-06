@@ -27,7 +27,15 @@ type Update struct {
 func (b *Bot) ProcessUpdate(u Update) {
 	c := b.NewContext(u)
 
+	if b.handle(OnAll, c) {
+		return
+	}
+
 	if u.Message != nil {
+		if b.handle(OnMessage, c) {
+			return
+		}
+
 		m := u.Message
 
 		if m.PinnedMessage != nil {

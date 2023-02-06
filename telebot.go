@@ -45,7 +45,11 @@ const DefaultApiURL = "https://api.telegram.org"
 // an "alert" character \a.
 //
 const (
+	// All updates.
+	OnAll = "\aall"
+
 	// Basic message handlers.
+	OnMessage           = "\amessage"
 	OnText              = "\atext"
 	OnEdited            = "\aedited"
 	OnPhoto             = "\aphoto"
