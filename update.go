@@ -237,7 +237,7 @@ func (b *Bot) processUpdate(u Update, handlers []*Handler) {
 			if match != nil {
 				unique, payload := match[0][1], match[0][3]
 				for _, handler := range handlers {
-					if !handler.End.Match([]byte(unique)) {
+					if !handler.End.MatchString(unique) {
 						continue
 					}
 					u.Callback.Unique = unique
