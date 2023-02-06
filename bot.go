@@ -139,19 +139,6 @@ func (b *Bot) debug(err error) {
 	}
 }
 
-func (b *Bot) matchHandlers(endpoint string) []HandlerFunc {
-	fs := []HandlerFunc{}
-	for _, hs := range b.handlers {
-		for _, h := range hs {
-			if h.End == endpoint {
-				fs = append(fs, h.HandlerFunc)
-				break
-			}
-		}
-	}
-	return fs
-}
-
 // Group returns a new group.
 func (b *Bot) Group() *Group {
 	return &Group{b: b}
