@@ -29,5 +29,5 @@ func (g *Group) Handle(endpoint interface{}, h HandlerFunc, m ...MiddlewareFunc)
 }
 
 func (g *Group) HandleWithGroupNum(endpoint interface{}, h HandlerFunc, groupNum int, m ...MiddlewareFunc) {
-	g.b.HandleWithGroupNum(endpoint, h, groupNum, m...)
+	g.b.HandleWithGroupNum(endpoint, h, groupNum, append(g.middleware, m...)...)
 }
