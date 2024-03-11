@@ -47,7 +47,7 @@ const (
 	OnAll = "\aall"
 
 	// Basic message handlers.
-	OnMessage           = "\amessage"
+	OnMessage              = "\amessage"
 	OnText                 = "\atext"
 	OnEdited               = "\aedited"
 	OnPhoto                = "\aphoto"

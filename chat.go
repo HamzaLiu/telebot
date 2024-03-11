@@ -128,10 +128,6 @@ type ChatMember struct {
 	//
 	RestrictedUntil int64 `json:"until_date,omitempty"`
 
-	// A flag that is used to judge if the user is a member of the group
-	// when the role is restricted.
-	IsMember bool `json:"is_member"`
-
 	JoinToSend    string `json:"join_to_send_messages"`
 	JoinByRequest string `json:"join_by_request"`
 }
