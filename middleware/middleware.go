@@ -3,7 +3,7 @@ package middleware
 import (
 	"errors"
 
-	tele "gopkg.in/telebot.v3"
+	tele "github.com/HamzaLiu/telebot"
 )
 
 // AutoRespond returns a middleware that automatically responds
@@ -42,7 +42,7 @@ func Recover(onError ...func(error)) tele.MiddlewareFunc {
 				f = onError[0]
 			} else {
 				f = func(err error) {
-					c.Bot().OnError(err, nil)
+					c.Bot().OnError(err, c)
 				}
 			}
 

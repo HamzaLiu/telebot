@@ -4,10 +4,10 @@
 //
 //	package main
 //
-//	import (
-//		"time"
-//		tele "gopkg.in/telebot.v3"
-//	)
+//		import (
+//			"time"
+//			tele "github.com/HamzaLiu/telebot"
+//		)
 //
 //	func main() {
 //		b, err := tele.NewBot(tele.Settings{
@@ -43,7 +43,11 @@ const DefaultApiURL = "https://api.telegram.org"
 // For convenience, all Telebot-provided endpoints start with
 // an "alert" character \a.
 const (
+	// All updates.
+	OnAll = "\aall"
+
 	// Basic message handlers.
+	OnMessage           = "\amessage"
 	OnText                 = "\atext"
 	OnEdited               = "\aedited"
 	OnPhoto                = "\aphoto"

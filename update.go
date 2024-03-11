@@ -29,13 +29,27 @@ type Update struct {
 // ProcessUpdate processes a single incoming update.
 // A started bot calls this function automatically.
 func (b *Bot) ProcessUpdate(u Update) {
+	for _, handlers := range b.handlers {
+		b.processUpdate(u, handlers)
+	}
+}
+
+func (b *Bot) processUpdate(u Update, handlers []*Handler) {
 	c := b.NewContext(u)
 
+	if b.handle(OnAll, c, handlers) {
+		return
+	}
+
 	if u.Message != nil {
+		if b.handle(OnMessage, c, handlers) {
+			return
+		}
+
 		m := u.Message
 
 		if m.PinnedMessage != nil {
-			b.handle(OnPinned, c)
+			b.handle(OnPinned, c, handlers)
 			return
 		}
 
@@ -56,180 +70,217 @@ func (b *Bot) ProcessUpdate(u Update) {
 				}
 
 				m.Payload = match[0][5]
-				if b.handle(command, c) {
+				if b.handle(command, c, handlers) {
 					return
 				}
 			}
 
 			// 1:1 satisfaction
-			if b.handle(m.Text, c) {
+			if b.handle(m.Text, c, handlers) {
 				return
 			}
 
-			b.handle(OnText, c)
+			b.handle(OnText, c, handlers)
 			return
 		}
 
-		if b.handleMedia(c) {
+		if b.handleMedia(c, handlers) {
 			return
 		}
 
 		if m.Contact != nil {
-			b.handle(OnContact, c)
+			b.handle(OnContact, c, handlers)
 			return
 		}
 		if m.Location != nil {
-			b.handle(OnLocation, c)
+			b.handle(OnLocation, c, handlers)
 			return
 		}
 		if m.Venue != nil {
-			b.handle(OnVenue, c)
+			b.handle(OnVenue, c, handlers)
 			return
 		}
 		if m.Game != nil {
-			b.handle(OnGame, c)
+			b.handle(OnGame, c, handlers)
 			return
 		}
 		if m.Dice != nil {
-			b.handle(OnDice, c)
+			b.handle(OnDice, c, handlers)
 			return
 		}
 		if m.Invoice != nil {
-			b.handle(OnInvoice, c)
+			b.handle(OnInvoice, c, handlers)
 			return
 		}
 		if m.Payment != nil {
-			b.handle(OnPayment, c)
+			b.handle(OnPayment, c, handlers)
 			return
 		}
 
 		if m.TopicCreated != nil {
-			b.handle(OnTopicCreated, c)
+			b.handle(OnTopicCreated, c, handlers)
 			return
 		}
 		if m.TopicReopened != nil {
-			b.handle(OnTopicReopened, c)
+			b.handle(OnTopicReopened, c, handlers)
 			return
 		}
 		if m.TopicClosed != nil {
-			b.handle(OnTopicClosed, c)
+			b.handle(OnTopicClosed, c, handlers)
 			return
 		}
 		if m.TopicEdited != nil {
-			b.handle(OnTopicEdited, c)
+			b.handle(OnTopicEdited, c, handlers)
 			return
 		}
 		if m.GeneralTopicHidden != nil {
-			b.handle(OnGeneralTopicHidden, c)
+			b.handle(OnGeneralTopicHidden, c, handlers)
 			return
 		}
 		if m.GeneralTopicUnhidden != nil {
-			b.handle(OnGeneralTopicUnhidden, c)
+			b.handle(OnGeneralTopicUnhidden, c, handlers)
 			return
 		}
 		if m.WriteAccessAllowed != nil {
-			b.handle(OnWriteAccessAllowed, c)
+			b.handle(OnWriteAccessAllowed, c, handlers)
+			return
+		}
+
+		if m.TopicCreated != nil {
+			b.handle(OnTopicCreated, c, handlers)
+			return
+		}
+		if m.TopicReopened != nil {
+			b.handle(OnTopicReopened, c, handlers)
+			return
+		}
+		if m.TopicClosed != nil {
+			b.handle(OnTopicClosed, c, handlers)
+			return
+		}
+		if m.TopicEdited != nil {
+			b.handle(OnTopicEdited, c, handlers)
+			return
+		}
+		if m.GeneralTopicHidden != nil {
+			b.handle(OnGeneralTopicHidden, c, handlers)
+			return
+		}
+		if m.GeneralTopicUnhidden != nil {
+			b.handle(OnGeneralTopicUnhidden, c, handlers)
+			return
+		}
+		if m.WriteAccessAllowed != nil {
+			b.handle(OnWriteAccessAllowed, c, handlers)
 			return
 		}
 
 		wasAdded := (m.UserJoined != nil && m.UserJoined.ID == b.Me.ID) ||
 			(m.UsersJoined != nil && isUserInList(b.Me, m.UsersJoined))
 		if m.GroupCreated || m.SuperGroupCreated || wasAdded {
-			b.handle(OnAddedToGroup, c)
+			b.handle(OnAddedToGroup, c, handlers)
 			return
 		}
 
 		if m.UserJoined != nil {
-			b.handle(OnUserJoined, c)
+			b.handle(OnUserJoined, c, handlers)
 			return
 		}
 		if m.UsersJoined != nil {
 			for _, user := range m.UsersJoined {
 				m.UserJoined = &user
-				b.handle(OnUserJoined, c)
+				b.handle(OnUserJoined, c, handlers)
 			}
 			return
 		}
 		if m.UserLeft != nil {
-			b.handle(OnUserLeft, c)
+			b.handle(OnUserLeft, c, handlers)
 			return
 		}
 
 		if m.UserShared != nil {
-			b.handle(OnUserShared, c)
+			b.handle(OnUserShared, c, handlers)
 			return
 		}
 		if m.ChatShared != nil {
-			b.handle(OnChatShared, c)
+			b.handle(OnChatShared, c, handlers)
+			return
+		}
+
+		if m.UserShared != nil {
+			b.handle(OnUserShared, c, handlers)
+			return
+		}
+		if m.ChatShared != nil {
+			b.handle(OnChatShared, c, handlers)
 			return
 		}
 
 		if m.NewGroupTitle != "" {
-			b.handle(OnNewGroupTitle, c)
+			b.handle(OnNewGroupTitle, c, handlers)
 			return
 		}
 		if m.NewGroupPhoto != nil {
-			b.handle(OnNewGroupPhoto, c)
+			b.handle(OnNewGroupPhoto, c, handlers)
 			return
 		}
 		if m.GroupPhotoDeleted {
-			b.handle(OnGroupPhotoDeleted, c)
+			b.handle(OnGroupPhotoDeleted, c, handlers)
 			return
 		}
 
 		if m.GroupCreated {
-			b.handle(OnGroupCreated, c)
+			b.handle(OnGroupCreated, c, handlers)
 			return
 		}
 		if m.SuperGroupCreated {
-			b.handle(OnSuperGroupCreated, c)
+			b.handle(OnSuperGroupCreated, c, handlers)
 			return
 		}
 		if m.ChannelCreated {
-			b.handle(OnChannelCreated, c)
+			b.handle(OnChannelCreated, c, handlers)
 			return
 		}
 
 		if m.MigrateTo != 0 {
 			m.MigrateFrom = m.Chat.ID
-			b.handle(OnMigration, c)
+			b.handle(OnMigration, c, handlers)
 			return
 		}
 
 		if m.VideoChatStarted != nil {
-			b.handle(OnVideoChatStarted, c)
+			b.handle(OnVideoChatStarted, c, handlers)
 			return
 		}
 		if m.VideoChatEnded != nil {
-			b.handle(OnVideoChatEnded, c)
+			b.handle(OnVideoChatEnded, c, handlers)
 			return
 		}
 		if m.VideoChatParticipants != nil {
-			b.handle(OnVideoChatParticipants, c)
+			b.handle(OnVideoChatParticipants, c, handlers)
 			return
 		}
 		if m.VideoChatScheduled != nil {
-			b.handle(OnVideoChatScheduled, c)
+			b.handle(OnVideoChatScheduled, c, handlers)
 			return
 		}
 
 		if m.WebAppData != nil {
-			b.handle(OnWebApp, c)
-			return
+			b.handle(OnWebApp, c, handlers)
 		}
 
 		if m.ProximityAlert != nil {
-			b.handle(OnProximityAlert, c)
+			b.handle(OnProximityAlert, c, handlers)
 			return
 		}
 		if m.AutoDeleteTimer != nil {
-			b.handle(OnAutoDeleteTimer, c)
+			b.handle(OnAutoDeleteTimer, c, handlers)
 			return
 		}
 	}
 
 	if u.EditedMessage != nil {
-		b.handle(OnEdited, c)
+		b.handle(OnEdited, c, handlers)
 		return
 	}
 
@@ -237,16 +288,16 @@ func (b *Bot) ProcessUpdate(u Update) {
 		m := u.ChannelPost
 
 		if m.PinnedMessage != nil {
-			b.handle(OnPinned, c)
+			b.handle(OnPinned, c, handlers)
 			return
 		}
 
-		b.handle(OnChannelPost, c)
+		b.handle(OnChannelPost, c, handlers)
 		return
 	}
 
 	if u.EditedChannelPost != nil {
-		b.handle(OnEditedChannelPost, c)
+		b.handle(OnEditedChannelPost, c, handlers)
 		return
 	}
 
@@ -255,84 +306,99 @@ func (b *Bot) ProcessUpdate(u Update) {
 			match := cbackRx.FindAllStringSubmatch(data, -1)
 			if match != nil {
 				unique, payload := match[0][1], match[0][3]
-				if handler, ok := b.handlers["\f"+unique]; ok {
+				for _, handler := range handlers {
+					if !handler.End.MatchString(unique) {
+						continue
+					}
 					u.Callback.Unique = unique
 					u.Callback.Data = payload
-					b.runHandler(handler, c)
+					b.runHandler(handler.HandlerFunc, c)
 					return
 				}
 			}
 		}
 
-		b.handle(OnCallback, c)
+		b.handle(OnCallback, c, handlers)
 		return
 	}
 
 	if u.Query != nil {
-		b.handle(OnQuery, c)
+		b.handle(OnQuery, c, handlers)
 		return
 	}
 
 	if u.InlineResult != nil {
-		b.handle(OnInlineResult, c)
+		b.handle(OnInlineResult, c, handlers)
 		return
 	}
 
 	if u.ShippingQuery != nil {
-		b.handle(OnShipping, c)
+		b.handle(OnShipping, c, handlers)
 		return
 	}
 
 	if u.PreCheckoutQuery != nil {
-		b.handle(OnCheckout, c)
+		b.handle(OnCheckout, c, handlers)
 		return
 	}
 
 	if u.Poll != nil {
-		b.handle(OnPoll, c)
+		b.handle(OnPoll, c, handlers)
 		return
 	}
 
 	if u.PollAnswer != nil {
-		b.handle(OnPollAnswer, c)
+		b.handle(OnPollAnswer, c, handlers)
 		return
 	}
 
 	if u.MyChatMember != nil {
-		b.handle(OnMyChatMember, c)
+		b.handle(OnMyChatMember, c, handlers)
 		return
 	}
 
 	if u.ChatMember != nil {
-		b.handle(OnChatMember, c)
+		b.handle(OnChatMember, c, handlers)
 		return
 	}
 
 	if u.ChatJoinRequest != nil {
-		b.handle(OnChatJoinRequest, c)
+		b.handle(OnChatJoinRequest, c, handlers)
 		return
 	}
 
 	if u.Boost != nil {
-		b.handle(OnBoost, c)
+		b.handle(OnBoost, c, handlers)
 		return
 	}
 
 	if u.BoostRemoved != nil {
-		b.handle(onBoostRemoved, c)
+		b.handle(onBoostRemoved, c, handlers)
+		return
+	}
+
+	if u.Boost != nil {
+		b.handle(OnBoost, c, handlers)
+		return
+	}
+
+	if u.BoostRemoved != nil {
+		b.handle(onBoostRemoved, c, handlers)
 		return
 	}
 }
 
-func (b *Bot) handle(end string, c Context) bool {
-	if handler, ok := b.handlers[end]; ok {
-		b.runHandler(handler, c)
-		return true
+func (b *Bot) handle(end string, c Context, handlers []*Handler) bool {
+	for _, handler := range handlers {
+		if handler.End.Match([]byte(end)) {
+			b.runHandler(handler.HandlerFunc, c)
+			return true
+		}
 	}
 	return false
 }
 
-func (b *Bot) handleMedia(c Context) bool {
+func (b *Bot) handleMedia(c Context, handlers []*Handler) bool {
 	var (
 		m     = c.Message()
 		fired = true
@@ -340,27 +406,27 @@ func (b *Bot) handleMedia(c Context) bool {
 
 	switch {
 	case m.Photo != nil:
-		fired = b.handle(OnPhoto, c)
+		fired = b.handle(OnPhoto, c, handlers)
 	case m.Voice != nil:
-		fired = b.handle(OnVoice, c)
+		fired = b.handle(OnVoice, c, handlers)
 	case m.Audio != nil:
-		fired = b.handle(OnAudio, c)
+		fired = b.handle(OnAudio, c, handlers)
 	case m.Animation != nil:
-		fired = b.handle(OnAnimation, c)
+		fired = b.handle(OnAnimation, c, handlers)
 	case m.Document != nil:
-		fired = b.handle(OnDocument, c)
+		fired = b.handle(OnDocument, c, handlers)
 	case m.Sticker != nil:
-		fired = b.handle(OnSticker, c)
+		fired = b.handle(OnSticker, c, handlers)
 	case m.Video != nil:
-		fired = b.handle(OnVideo, c)
+		fired = b.handle(OnVideo, c, handlers)
 	case m.VideoNote != nil:
-		fired = b.handle(OnVideoNote, c)
+		fired = b.handle(OnVideoNote, c, handlers)
 	default:
 		return false
 	}
 
 	if !fired {
-		return b.handle(OnMedia, c)
+		return b.handle(OnMedia, c, handlers)
 	}
 
 	return true

@@ -2,6 +2,7 @@ package telebot
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -10,6 +11,12 @@ import (
 // HandlerFunc represents a handler function, which is
 // used to handle actual endpoints.
 type HandlerFunc func(Context) error
+
+// Handler contains a handler function and the endpoint of this function.
+type Handler struct {
+	End         *regexp.Regexp
+	HandlerFunc HandlerFunc
+}
 
 // Context wraps an update and represents the context of current event.
 type Context interface {

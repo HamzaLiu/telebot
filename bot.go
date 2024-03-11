@@ -43,7 +43,7 @@ func NewBot(pref Settings) (*Bot, error) {
 		onError: pref.OnError,
 
 		Updates:  make(chan Update, pref.Updates),
-		handlers: make(map[string]HandlerFunc),
+		handlers: make(map[int][]*Handler),
 		stop:     make(chan chan struct{}),
 
 		synchronous: pref.Synchronous,
@@ -76,7 +76,7 @@ type Bot struct {
 	onError func(error, Context)
 
 	group       *Group
-	handlers    map[string]HandlerFunc
+	handlers    map[int][]*Handler
 	synchronous bool
 	verbose     bool
 	parseMode   ParseMode
@@ -154,7 +154,7 @@ func (b *Bot) Use(middleware ...MiddlewareFunc) {
 
 var (
 	cmdRx   = regexp.MustCompile(`^(/\w+)(@(\w+))?(\s|$)(.+)?`)
-	cbackRx = regexp.MustCompile(`^\f([-\w]+)(\|(.+))?$`)
+	cbackRx = regexp.MustCompile(`^\f([^\|]+)(\|(.+))?$`)
 )
 
 // Handle lets you set the handler for some command name or
@@ -175,6 +175,10 @@ var (
 //
 //	b.Handle("/ban", onBan, middleware.Whitelist(ids...))
 func (b *Bot) Handle(endpoint interface{}, h HandlerFunc, m ...MiddlewareFunc) {
+	b.HandleWithGroupNum(endpoint, h, -1, m...)
+}
+
+func (b *Bot) HandleWithGroupNum(endpoint interface{}, h HandlerFunc, groupNum int, m ...MiddlewareFunc) {
 	if len(b.group.middleware) > 0 {
 		m = appendMiddleware(b.group.middleware, m)
 	}
@@ -183,14 +187,22 @@ func (b *Bot) Handle(endpoint interface{}, h HandlerFunc, m ...MiddlewareFunc) {
 		return applyMiddleware(h, m...)(c)
 	}
 
+	var endReg *regexp.Regexp
 	switch end := endpoint.(type) {
 	case string:
-		b.handlers[end] = handler
+		endReg = regexp.MustCompile(fmt.Sprintf("^%s$", end))
 	case CallbackEndpoint:
-		b.handlers[end.CallbackUnique()] = handler
+		endReg = regexp.MustCompile(fmt.Sprintf("^%s$", end.CallbackUnique()))
+	case *regexp.Regexp:
+		endReg = end
 	default:
 		panic("telebot: unsupported endpoint")
 	}
+
+	b.handlers[groupNum] = append(b.handlers[groupNum], &Handler{
+		End:         endReg,
+		HandlerFunc: handler,
+	})
 }
 
 // Start brings bot into motion by consuming incoming
