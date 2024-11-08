@@ -1,6 +1,6 @@
 module github.com/HamzaLiu/telebot
 
-go 1.13
+go 1.16
 
 require (
 	github.com/goccy/go-yaml v1.9.5
