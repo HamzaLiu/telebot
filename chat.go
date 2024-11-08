@@ -116,7 +116,9 @@ type ChatMember struct {
 	Role      MemberStatus `json:"status"`
 	Title     string       `json:"custom_title"`
 	Anonymous bool         `json:"is_anonymous"`
-	Member    bool         `json:"is_member,omitempty"`
+	// A flag that is used to judge if the user is a member of the group
+	// when the role is restricted.
+	Member bool `json:"is_member,omitempty"`
 
 	// Date when restrictions will be lifted for the user, unix time.
 	//
@@ -127,10 +129,6 @@ type ChatMember struct {
 	// Use tele.Forever().
 	//
 	RestrictedUntil int64 `json:"until_date,omitempty"`
-
-	// A flag that is used to judge if the user is a member of the group
-	// when the role is restricted.
-	IsMember bool `json:"is_member"`
 
 	JoinToSend    string `json:"join_to_send_messages"`
 	JoinByRequest string `json:"join_by_request"`
