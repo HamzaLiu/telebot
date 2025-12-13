@@ -46,6 +46,9 @@ func (b *Bot) Raw(method string, payload interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, wrapError(err)
 	}
+	req.GetBody = func() (io.ReadCloser, error) {
+		return io.NopCloser(&buf), nil
+	}
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := b.client.Do(req)
